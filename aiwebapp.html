@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Bird with Coins</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background: #70c5ce;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let bird = {
+      x: 50,
+      y: 150,
+      width: 20,
+      height: 20,
+      gravity: 0.6,
+      lift: -15,
+      velocity: 0
+    };
+
+    let coins = [];
+    let score = 0;
+
+    function drawBird() {
+      ctx.fillStyle = 'yellow';
+      ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+    }
+
+    function drawCoins() {
+      ctx.fillStyle = 'gold';
+      coins.forEach(coin => {
+        ctx.beginPath();
+        ctx.arc(coin.x, coin.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function updateBird() {
+      bird.velocity += bird.gravity;
+      bird.y += bird.velocity;
+
+      if (bird.y + bird.height > canvas.height) {
+        bird.y = canvas.height - bird.height;
+        bird.velocity = 0;
+      }
+
+      if (bird.y < 0) {
+        bird.y = 0;
+        bird.velocity = 0;
+      }
+    }
+
+    function updateCoins() {
+      coins.forEach(coin => {
+        coin.x -= 2;
+      });
+
+      if (coins.length && coins[0].x < 0) {
+        coins.shift();
+      }
+
+      if (Math.random() < 0.02) {
+        coins.push({
+          x: canvas.width,
+          y: Math.random() * canvas.height
+        });
+      }
+    }
+
+    function checkCollision() {
+      coins.forEach((coin, index) => {
+        if (bird.x < coin.x + 10 &&
+          bird.x + bird.width > coin.x &&
+          bird.y < coin.y + 10 &&
+          bird.y + bird.height > coin.y) {
+          coins.splice(index, 1);
+          score++;
+        }
+      });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = 'black';
+      ctx.font = '20px Arial';
+      ctx.fillText('Score: ' + score, 10, 20);
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBird();
+      drawCoins();
+      drawScore();
+      updateBird();
+      updateCoins();
+      checkCollision();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        bird.velocity = bird.lift;
+      }
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>
